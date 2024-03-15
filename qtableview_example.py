@@ -1,37 +1,38 @@
-'''Example application showing how to use the object QTableWidget for 
-displaying data in a GUI.
+'''Example application showing how to use the object QSqlTableModel for 
+displaying and changing data in a GUI.
 
 The application uses the contacts.sqlite database.'''
 
 import sys
-from PyQt5.QtSql import QSqlDatabase, QSqlQuery
+from PyQt5.QtCore import Qt
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
 from PyQt5.QtWidgets import (
     QApplication,
     QMainWindow,
     QMessageBox,
-    QTableWidget,
-    QTableWidgetItem,
+    QTableView,
 )
 
 
 class Contacts(QMainWindow):
-    '''Setting up the view and loading the data.'''
+    '''Setting up the model and view.'''
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle('QTableView Example')
-        self.resize(450, 250)
-        self.view = QTableWidget()
-        self.view.setColumnCount(4)
-        self.view.setHorizontalHeaderLabels(['ID', 'Name', 'Job', 'Email'])
-        query = QSqlQuery('SELECT id, name, job, email FROM contacts')
-        while query.next():
-            rows = self.view.rowCount()
-            self.view.setRowCount(rows + 1)
-            self.view.setItem(rows, 0, QTableWidgetItem(str(query.value(0))))
-            self.view.setItem(rows, 1, QTableWidgetItem(str(query.value(1))))
-            self.view.setItem(rows, 2, QTableWidgetItem(str(query.value(2))))
-            self.view.setItem(rows, 3, QTableWidgetItem(str(query.value(3))))
+        self.resize(415, 200)
+        # Set up the model.
+        self.model = QSqlTableModel(self)
+        self.model.setTable('contacts')
+        self.model.setEditStrategy(QSqlTableModel.OnFieldChange)
+        self.model.setHeaderData(0, Qt.Horizontal, 'ID')
+        self.model.setHeaderData(1, Qt.Horizontal, 'Name')
+        self.model.setHeaderData(2, Qt.Horizontal, 'Job')
+        self.model.setHeaderData(3, Qt.Horizontal, 'Email')
+        self.model.select()
+        # Set up the view.
+        self.view = QTableView()
+        self.view.setModel(self.model)
         self.view.resizeColumnsToContents()
         self.setCentralWidget(self.view)
 
